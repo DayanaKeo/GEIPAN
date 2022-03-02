@@ -19,6 +19,34 @@ class Query
         }
     }
 
+    public function insertion ($query)
+    {
+        try{
+            $this->connexion->beginTransaction();
+            $this->connexion->exec($query);
+            $this->connexion->commit();
+        }
+        catch(PDOException $e){
+            $this->connexion->rollBack();
+            die("Erreur : " . $e->getMessage());
+        }
+    }
+
+    public function select($query)
+    {
+        try{
+            $requete = $this->connexion->prepare($query);
+            $requete->execute();
+            $resultat = $requete->fetchAll(PDO::FETCH_OBJ);
+
+            return $resultat;
+        }
+        catch(PDOException $e){
+            $this->connexion->rollBack();
+            die("Erreur : " . $e->getMessage());
+        }
+    }
+
     public function __destruct()
     {
         unset($this->connexion);        
