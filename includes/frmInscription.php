@@ -1,3 +1,4 @@
+<h1>Inscription</h1>
 <form action="index.php?page=inscription" method="post">
     <ul>
         <li><label for="userName">Nom : </label><input type="text" name="userName" id="userName" value="<?php echo $userName?> " /> </li>
@@ -8,10 +9,6 @@
         <li><label for="avatar">Avatar : </label><input type="file" name="avatar" id="avatar" value="<?php echo $avatar?> " /> </li>
         <input type="reset" value="Effacer" />
         <input type="submit" value="S'inscrire" name="inscription" />
-
-    
-    
-    
     
     </ul>
 </form>
