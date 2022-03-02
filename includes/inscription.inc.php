@@ -41,59 +41,52 @@ if (isset($_POST['inscription']))
         array_push($erreur, "Le mot de passe ne correspond pas");
     }
 
-    if (isset($_FILES["avatar"]) && $_FILES["avatar"]["error"] == 0){
-        $fileName = $_FILES["avatar"]["name"];
-        $fileType = $_FILES["avatar"]["type"];
-        $fileTmpName = $_FILES["avatar"]["tmp_name"];
-
+    if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
+        
+        $fileName = $_FILES['avatar']['name'];
+        $fileType = $_FILES['avatar']['type'];
+        $fileTmpName = $_FILES['avatar']['tmp_name'];
+        
         $tableauTypes = array("image/jpeg", "image/jpg", "image/png", "image/gif");
 
-        if (in_array($fileType, $tableauTypes)){
-            $date = date("d-m-Y-h-i-s");
-            $fileName = $date . "_" . $fileName;
-            $fileName = getcwd() . "/avatars/" . $fileName;
-            $fileName = str_replace("\\", "/", $fileName);
+        if (in_array($fileType, $tableauTypes)) {
+            $path = getcwd() . "/avatars/";
+            $date = date('dmYhis');
+            $fileName = $date . $fileName;
+            $fileNameFinal = $path . $fileName;
+            $fileNameFinal = str_replace("\\", "/", $fileNameFinal);
         }
-        else 
-        {
+        else {
             array_push($erreur, "Erreur type MIME");
         }
-    }
-
-    else
-    {
-        $fileError = "";
-        switch ($_FILES["avatar"]["error"])
-        {
-            case 1: $fileError = "La taille du fichier télécharger excède a valeur de upload_max_filesize, configurée dans le php.ini.";
+    } else {
+        $fileUploadError = $_FILES['avatar']['error'] ;
+        
+        switch($fileUploadError) {
+            case 1 :
+                $fileUploadErrorMessage = "La taille du fichier téléchargé excède la valeur de upload_max_filesize.";
             break;
-            
-            case 2:
-                $fileError = "La taille du fichier téléchargé excède la valeur de MAX_FILE_SIZE, qui a été spécifiée dans le formulaire HTML.";
-                break;
-
-            case 3:
-                $fileError = "Le fichier n'a été que partiellement téléchargé.";
-                break;
-
-            case 4:
-                $fileError = "Aucun fichier n'a été téléchargé.";
-                break;
-
-            case 6:
-                $fileError = "Un dossier temporaire est manquant.";
-                break;
-
-            case 7:
-                $fileError = "Échec de l'écriture du fichier sur le disque.";
-                break;
-            
-            case 8:
-                $fileError = "Une extension PHP a arrêté l'envoi de fichier. PHP ne propose aucun moyen de déterminer quelle extension est en cause. L'examen du phpinfo() peut aider.";
-                break;
+            case 2 :
+                $fileUploadErrorMessage = "La taille du fichier téléchargé excède la valeur de MAX_FILE_SIZE, qui a été spécifiée dans le formulaire HTML.";
+            break;
+            case 3 :
+                $fileUploadErrorMessage = "Le fichier n'a été que partiellement téléchargé.";
+            break;
+            case 4 :
+                $fileUploadErrorMessage = "Aucun fichier n'a été téléchargé.";
+            break;
+            case 6 :
+                $fileUploadErrorMessage = "Un dossier temporaire est manquant.";
+            break;
+            case 7 :
+                $fileUploadErrorMessage = "Échec de l'écriture du fichier sur le disque.";
+            break;
+            case 8 :
+                $fileUploadErrorMessage = "Une extension PHP a arrêté l'envoi de fichier.";
+            break;
         }
-        array_push($erreur, $fileError);
-    
+
+        array_push($erreur, "Erreur upload : " . $fileUploadErrorMessage);
     }
 
     if (count($erreur) === 0)
@@ -120,21 +113,25 @@ if (isset($_POST['inscription']))
             else 
             {
                 $query = $conn->prepare(
-                    "INSERT INTO users(userName, userFirstName, userMail, userPassword, userAvatar)
+                    "INSERT INTO users(userName, userFirstname, userMail, userPassword, userAvatar)
                     VALUES (:userName, :userFirstName, :userMail, :userPassword, :avatar);"
                 );
 
                 $query->bindParam(':userName', $userName, PDO::PARAM_STR_CHAR);
                 $query->bindParam(':userFirstName', $userFirstName, PDO::PARAM_STR_CHAR);
                 $query->bindParam(':userMail', $userMail, PDO::PARAM_STR_CHAR);
-                $query->bindParam(':userPassword', $userPassword, PDO::PARAM_STR_CHAR);
-                $query->bindParam(':avatar', $fileName, PDO::PARAM_STR_CHAR);
+                $query->bindParam(':userPassword', $userPassword);
+                $query->bindParam(':avatar', $fileNameFinal);
 
                 $query->execute();
 
-                echo "<script>
-                document.location.replace('http://localhost/geipan/index.php?page=login')
-                </script>";
+                move_uploaded_file($fileTmpName, $path . $fileName );
+
+                
+                echo "<p>Insertions effectuées avec succès</p>";
+                // echo "<script>
+                // document.location.replace('http://localhost/geipan/index.php?page=login')
+                // </script>";
             }
 
         }
@@ -142,6 +139,8 @@ if (isset($_POST['inscription']))
         {
             die("Erreur : " . $e->getMessage());
         }
+
+        $conn = null;
     }
 
     else
@@ -164,7 +163,7 @@ if (isset($_POST['inscription']))
 else
 { 
     echo "Merci de renseigner le formulaire"; 
-    $userName = $userFirstName = $userMail = $avatar = "";
+    $userName = $userFirstName = $userMail = "";
 }
 
 include 'frmInscription.php';
