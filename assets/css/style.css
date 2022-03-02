@@ -9,4 +9,18 @@ body {
 
 a {
     text-decoration: none;
+    
+}
+
+h1{
+    text-align: center;
+    font-weight: 600;
+}
+
+form{
+    text-align: justify;
+    margin-left: 30%;
+    border: 1px solid black;
+    width: 50%;
+    background-color: rgba(202, 89, 89, 0.452);
 }
